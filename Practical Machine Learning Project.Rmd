@@ -11,7 +11,9 @@ Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible t
 
 # Download and clean data and Do pre-processing
 
-```{r}
+Install and Load the required packages
+
+```{r, results='hide'}
 library(caret)
 library(rpart)
 library(rpart.plot)
@@ -19,6 +21,11 @@ library(randomForest)
 library(corrplot)
 library(e1071)
 
+```
+
+Load and Clean Data
+
+```{r}
 trainset <- read.csv("./pml-training.csv")
 testset <- read.csv("./pml-testing.csv")
 dim(trainset)
@@ -82,13 +89,11 @@ confusionMatrix(validationData$classe, predictRf)
 accuracy <- postResample(predictRf, validationData$classe)
 accuracy
 
-## Accuracy     Kappa 
-## 0.9933730 0.9916163 
+
 
 outofsample <- 1 - as.numeric(confusionMatrix(validationData$classe, predictRf)$overall[1])
 outofsample
 
-## [1] 0.006627018
 
 ```
 

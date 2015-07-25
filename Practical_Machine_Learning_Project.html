@@ -73,6 +73,7 @@ img {
 </div>
 <div id="download-and-clean-data-and-do-pre-processing" class="section level1">
 <h1>Download and clean data and Do pre-processing</h1>
+<p>Install and Load the required packages</p>
 <pre class="r"><code>library(caret)</code></pre>
 <pre><code>## Warning: package 'caret' was built under R version 3.2.1</code></pre>
 <pre><code>## Loading required package: lattice
@@ -88,6 +89,7 @@ library(rpart.plot)</code></pre>
 <pre><code>## Warning: package 'corrplot' was built under R version 3.2.1</code></pre>
 <pre class="r"><code>library(e1071)</code></pre>
 <pre><code>## Warning: package 'e1071' was built under R version 3.2.1</code></pre>
+<p>Load and Clean Data</p>
 <pre class="r"><code>trainset &lt;- read.csv(&quot;./pml-training.csv&quot;)
 testset &lt;- read.csv(&quot;./pml-testing.csv&quot;)
 dim(trainset)</code></pre>
@@ -189,13 +191,9 @@ confusionMatrix(validationData$classe, predictRf)</code></pre>
 accuracy</code></pre>
 <pre><code>##  Accuracy     Kappa 
 ## 0.9932031 0.9914012</code></pre>
-<pre class="r"><code>## Accuracy     Kappa 
-## 0.9933730 0.9916163 
-
-outofsample &lt;- 1 - as.numeric(confusionMatrix(validationData$classe, predictRf)$overall[1])
+<pre class="r"><code>outofsample &lt;- 1 - as.numeric(confusionMatrix(validationData$classe, predictRf)$overall[1])
 outofsample</code></pre>
 <pre><code>## [1] 0.006796941</code></pre>
-<pre class="r"><code>## [1] 0.006627018</code></pre>
 <p>Thus the model is 99.3% effective with a .6% probable error in prediction. This is a very high accuracy and we can safely select this model to apply to our final test set.</p>
 </div>
 <div id="final-predictions-on-test-data" class="section level1">
