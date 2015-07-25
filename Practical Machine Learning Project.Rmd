@@ -1,0 +1,145 @@
+---
+title: "Practical Machine Learning"
+author: "Praveer"
+date: "Saturday, July 25, 2015"
+output: html_document
+---
+
+# background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. In this project, our goal is to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. We will predict the manner in which they did the excercise.
+
+# Download and clean data and Do pre-processing
+
+```{r}
+library(caret)
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+library(corrplot)
+library(e1071)
+
+trainset <- read.csv("./pml-training.csv")
+testset <- read.csv("./pml-testing.csv")
+dim(trainset)
+dim(testset)
+
+sum(complete.cases(trainset))
+
+trainset <- trainset[, colSums(is.na(trainset)) == 0] 
+testset <- testset[, colSums(is.na(testset)) == 0] 
+
+
+classe <- trainset$classe
+trainclean <- grepl("^X|timestamp|window", names(trainset))
+trainset <- trainset[, !trainclean]
+trainfinal <- trainset[, sapply(trainset, is.numeric)]
+trainfinal$classe <- classe
+testclean <- grepl("^X|timestamp|window", names(testset))
+testset <- testset[, !testclean]
+testfinal <- testset[, sapply(testset, is.numeric)]
+
+dim(trainfinal)
+dim(testfinal)
+
+
+```
+
+
+the cleaned training data set contains 19622 observations and 53 variables.
+The cleaned testing data set contains 20 observations and 53 variables. 
+The "classe" variable is to be the predicted variable.
+
+## Further split the training data in training and coss validation (CV) sets
+
+```{r}
+
+set.seed(11111) 
+inTrain <- createDataPartition(trainfinal$classe, p=0.70, list=F)
+trainData <- trainfinal[inTrain, ]
+validationData <- trainfinal[-inTrain, ]
+
+```
+
+# Applying Random Forest Model for prediction
+
+we use the training data to fit a model and use the validation data to evaluate the model strength. And also asses the overall model accuracy.
+
+
+```{r}
+
+## train randomForest
+
+controlRf <- trainControl(method="cv", 5)
+modelRf <- train(classe ~ ., data=trainData, method="rf", trControl=controlRf, ntree=250)
+modelRf
+
+## Validate prediction
+
+predictRf <- predict(modelRf, validationData)
+confusionMatrix(validationData$classe, predictRf)
+
+accuracy <- postResample(predictRf, validationData$classe)
+accuracy
+
+## Accuracy     Kappa 
+## 0.9933730 0.9916163 
+
+outofsample <- 1 - as.numeric(confusionMatrix(validationData$classe, predictRf)$overall[1])
+outofsample
+
+## [1] 0.006627018
+
+```
+
+
+Thus the model is 99.3% effective with a .6% probable error in prediction. This is a very high accuracy and we can safely select this model to apply to our final test set.
+
+# Final predictions on Test Data
+
+```{r}
+
+Final <- predict(modelRf, testfinal[, -length(names(testfinal))])
+Final
+
+```
+
+# Plots for Visualization
+
+## Corelation Matrix
+
+```{r}
+
+corrPlot <- cor(trainData[, -length(names(trainData))])
+corrplot(corrPlot, method="color")
+
+```
+
+## Decision tree
+
+```{r}
+
+treeModel <- rpart(classe ~ ., data=trainData, method="class")
+prp(treeModel)
+
+```
+
+
+# Write Predictions to Files for submission
+
+```{r}
+
+answers <- Final
+pml_write_files <- function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i], file=filename, quote=FALSE,
+                row.names=FALSE, col.names=FALSE)
+  }
+}
+pml_write_files(answers)
+
+```
+
+# End of Report
